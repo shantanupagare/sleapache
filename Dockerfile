@@ -1,11 +1,17 @@
-FROM registry.suse.com/suse/sles12sp4:latest 
-MAINTAINER tux 
-RUN zypper ref -s && zypper --non-interactive in apache2
+FROM suse/sles12sp2
+MAINTAINER "Jason Evans <jevans@suse.com>"
 
-RUN echo "The Web Server is running" > /srv/www/htdocs/test.html 
-# COPY data/* /srv/www/htdocs/ 
+# The ADD command adds files from your directory into the new image
+ADD *.repo /etc/zypp/repos.d/
+ADD *.service /etc/zypp/services.d
 
-EXPOSE 80 
+RUN zypper refs && zypper refresh
 
-ENTRYPOINT ["/usr/sbin/httpd"]
-CMD ["-D", "FOREGROUND"]
+RUN     zypper  --non-interactive in apache2 \
+        apache2-mod_php7
+
+ADD index.html /srv/www/htdocs/
+
+CMD     /usr/sbin/apachectl -D FOREGROUND
+
+EXPOSE  80
